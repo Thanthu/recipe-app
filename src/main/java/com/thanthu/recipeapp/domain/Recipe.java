@@ -5,12 +5,16 @@ import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+
+import com.thanthu.recipeapp.domain.enums.Difficulty;
 
 @Entity
 public class Recipe {
@@ -26,8 +30,6 @@ public class Recipe {
 	private String source;
 	private String url;
 	private String directions;
-	// TODO add
-	// private Difficulty difficulty;
 
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "recipe")
 	private Set<Ingredient> ingredients = new HashSet<Ingredient>();
@@ -37,6 +39,9 @@ public class Recipe {
 
 	@OneToOne(cascade = CascadeType.ALL)
 	private Notes notes;
+
+	@Enumerated(EnumType.STRING)
+	private Difficulty difficulty;
 
 	public Long getId() {
 		return id;
@@ -124,6 +129,14 @@ public class Recipe {
 
 	public void setNotes(Notes notes) {
 		this.notes = notes;
+	}
+
+	public Difficulty getDifficulty() {
+		return difficulty;
+	}
+
+	public void setDifficulty(Difficulty difficulty) {
+		this.difficulty = difficulty;
 	}
 
 }
