@@ -65,4 +65,14 @@ public class Ingredient {
 		this.recipe = recipe;
 	}
 
+	public Ingredient() {
+	}
+
+	public Ingredient(String description, BigDecimal amount, UnitOfMeasure unitOfMeasure, Recipe recipe) {
+		this.description = description;
+		this.amount = amount;
+		this.unitOfMeasure = unitOfMeasure;
+		this.recipe = recipe;
+	}
+
 }
