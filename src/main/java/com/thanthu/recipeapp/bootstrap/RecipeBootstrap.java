@@ -18,6 +18,9 @@ import com.thanthu.recipeapp.repositories.CategoryRepository;
 import com.thanthu.recipeapp.repositories.RecipeRepository;
 import com.thanthu.recipeapp.repositories.UnitOfMeasureRepository;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Component
 public class RecipeBootstrap implements ApplicationListener<ContextRefreshedEvent> {
 
@@ -34,6 +37,7 @@ public class RecipeBootstrap implements ApplicationListener<ContextRefreshedEven
 
 	@Override
 	public void onApplicationEvent(ContextRefreshedEvent event) {
+		log.debug("Started Bootstrap...");
 		recipeRepository.saveAll(getRecipes());
 	}
 
