@@ -1,54 +1,68 @@
 package com.thanthu.recipeapp.services;
 
+import static org.hamcrest.CoreMatchers.any;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.thanthu.recipeapp.domain.Recipe;
 import com.thanthu.recipeapp.repositories.RecipeRepository;
 
+@ExtendWith(MockitoExtension.class)
 class RecipeServiceImplTest {
-
-	RecipeServiceImpl recipeService;
-
+	
 	@Mock
 	RecipeRepository recipeRepository;
-
-	AutoCloseable openMocks;
+	
+	@InjectMocks
+	RecipeServiceImpl recipeService;
+	
+	final Long RECIPE_ID = 1L;
+	Recipe recipe;
 
 	@BeforeEach
-	void setUp() {
-		openMocks = MockitoAnnotations.openMocks(this);
-		recipeService = new RecipeServiceImpl(recipeRepository);
+	void setUp() throws Exception {
+		recipe = new Recipe();
+		recipe.setId(RECIPE_ID);
 	}
 
 	@Test
-	void getRecipes() {
-
-		Recipe recipe = new Recipe();
-		Set<Recipe> recipesData = new HashSet<Recipe>();
-		recipesData.add(recipe);
-
-		when(recipeRepository.findAll()).thenReturn(recipesData);
-
+	void testGetRecipes() {
+		Set<Recipe> expectedRecipes = new HashSet<Recipe>();
+		expectedRecipes.add(recipe);
+		expectedRecipes.add(new Recipe());
+		
+		when(recipeRepository.findAll()).thenReturn(expectedRecipes);
+		
 		Set<Recipe> recipes = recipeService.getRecipes();
-		assertEquals(1, recipes.size());
+		
+		assertNotNull(recipes);
+		assertEquals(2, recipes.size());
 		verify(recipeRepository, times(1)).findAll();
+		verify(recipeRepository, never()).findById(any());
 	}
 
-	@AfterEach
-	void tearDown() throws Exception {
-		openMocks.close();
+	@Test
+	void testGetRecipeById() {
+		when(recipeRepository.findById(RECIPE_ID)).thenReturn(Optional.of(recipe));
+		
+		assertNotNull(recipeService.getRecipeById(RECIPE_ID));
+		verify(recipeRepository, times(1)).findById(RECIPE_ID);
+		verify(recipeRepository, never()).findAll();
 	}
 
 }
