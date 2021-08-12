@@ -57,10 +57,10 @@ class RecipeServiceImplTest {
 	}
 
 	@Test
-	void testGetRecipeById() {
+	void testFindById() {
 		when(recipeRepository.findById(RECIPE_ID)).thenReturn(Optional.of(recipe));
 		
-		assertNotNull(recipeService.getRecipeById(RECIPE_ID));
+		assertNotNull(recipeService.findById(RECIPE_ID));
 		verify(recipeRepository, times(1)).findById(RECIPE_ID);
 		verify(recipeRepository, never()).findAll();
 	}
