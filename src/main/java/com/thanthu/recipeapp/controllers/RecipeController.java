@@ -42,7 +42,7 @@ public class RecipeController {
 	public String saveOrUpdate(@ModelAttribute RecipeCommand command) {
 		log.debug("Inside RecipeController.saveOrUpdate()");
 		RecipeCommand savedCommand = recipeService.saveRecipeCommand(command);
-		return "redirect:/recipe/show/" + savedCommand.getId();
+		return "redirect:/recipe/" + savedCommand.getId() + "/show";
 	}
 
 }
