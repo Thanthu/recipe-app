@@ -1,11 +1,17 @@
 package com.thanthu.recipeapp.services;
 
+import java.util.Optional;
+
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.thanthu.recipeapp.commands.IngredientCommand;
+import com.thanthu.recipeapp.converters.IngredientCommandToIngredient;
 import com.thanthu.recipeapp.converters.IngredientToIngredientCommand;
+import com.thanthu.recipeapp.domain.Ingredient;
 import com.thanthu.recipeapp.domain.Recipe;
 import com.thanthu.recipeapp.repositories.RecipeRepository;
+import com.thanthu.recipeapp.repositories.UnitOfMeasureRepository;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,10 +23,18 @@ public class IngredientServiceImpl implements IngredientService {
 
 	private final IngredientToIngredientCommand ingredientToIngredientCommand;
 
+	private final UnitOfMeasureRepository unitOfMeasureRepository;
+
+	private final IngredientCommandToIngredient ingredientCommandToIngredient;
+
 	public IngredientServiceImpl(RecipeRepository recipeRepository,
-			IngredientToIngredientCommand ingredientToIngredientCommand) {
+			IngredientToIngredientCommand ingredientToIngredientCommand,
+			UnitOfMeasureRepository unitOfMeasureRepository,
+			IngredientCommandToIngredient ingredientCommandToIngredient) {
 		this.recipeRepository = recipeRepository;
 		this.ingredientToIngredientCommand = ingredientToIngredientCommand;
+		this.unitOfMeasureRepository = unitOfMeasureRepository;
+		this.ingredientCommandToIngredient = ingredientCommandToIngredient;
 	}
 
 	@Override
@@ -29,13 +43,41 @@ public class IngredientServiceImpl implements IngredientService {
 				.orElseThrow(() -> new RuntimeException("Recipe not found for ID: " + recipeId));
 
 		log.debug(ingredientToIngredientCommand.toString());
-		
+
 		IngredientCommand ingredientCommand = recipe.getIngredients().stream()
 				.filter(ingredient -> ingredient.getId().equals(ingredientId))
 				.map(ingredient -> ingredientToIngredientCommand.convert(ingredient)).findFirst()
 				.orElseThrow(() -> new RuntimeException("Ingredient not found for ID: " + ingredientId));
 
 		return ingredientCommand;
+	}
+
+	@Override
+	@Transactional
+	public IngredientCommand saveIngredientCommand(IngredientCommand command) {
+		Recipe recipe = recipeRepository.findById(command.getRecipeId())
+				.orElseThrow(() -> new RuntimeException("Recipe not found for ID: " + command.getRecipeId()));
+
+		Optional<Ingredient> ingredientOptional = recipe.getIngredients().stream()
+				.filter(ingredient -> ingredient.getId().equals(command.getId())).findFirst();
+
+		if (ingredientOptional.isPresent()) {
+			Ingredient ingredientFound = ingredientOptional.get();
+			ingredientFound.setDescription(command.getDescription());
+			ingredientFound.setAmount(command.getAmount());
+			ingredientFound.setUnitOfMeasure(unitOfMeasureRepository.findById(command.getUnitOfMeasure().getId())
+					.orElseThrow(() -> new RuntimeException(
+							"Unit Of Measure not found for ID: " + command.getUnitOfMeasure().getId())));
+		} else {
+			// add new Ingredient
+			recipe.addIngredient(ingredientCommandToIngredient.convert(command));
+		}
+
+		Recipe savedRecipe = recipeRepository.save(recipe);
+
+		return ingredientToIngredientCommand.convert(savedRecipe.getIngredients().stream()
+				.filter(recipeIngredients -> recipeIngredients.getId().equals(command.getId())).findFirst().get());
+
 	}
 
 }
