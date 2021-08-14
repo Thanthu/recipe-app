@@ -42,8 +42,6 @@ public class IngredientServiceImpl implements IngredientService {
 		Recipe recipe = recipeRepository.findById(recipeId)
 				.orElseThrow(() -> new RuntimeException("Recipe not found for ID: " + recipeId));
 
-		log.debug(ingredientToIngredientCommand.toString());
-
 		IngredientCommand ingredientCommand = recipe.getIngredients().stream()
 				.filter(ingredient -> ingredient.getId().equals(ingredientId))
 				.map(ingredient -> ingredientToIngredientCommand.convert(ingredient)).findFirst()
@@ -75,8 +73,22 @@ public class IngredientServiceImpl implements IngredientService {
 
 		Recipe savedRecipe = recipeRepository.save(recipe);
 
-		return ingredientToIngredientCommand.convert(savedRecipe.getIngredients().stream()
-				.filter(recipeIngredients -> recipeIngredients.getId().equals(command.getId())).findFirst().get());
+		Optional<Ingredient> savedIngredientOptional = savedRecipe.getIngredients().stream()
+				.filter(recipeIngredients -> recipeIngredients.getId().equals(command.getId())).findFirst();
+
+		// check by description
+		if (!savedIngredientOptional.isPresent()) {
+			// not totally safe... But best guess
+			savedIngredientOptional = savedRecipe.getIngredients().stream()
+					.filter(recipeIngredients -> recipeIngredients.getDescription().equals(command.getDescription()))
+					.filter(recipeIngredients -> recipeIngredients.getAmount().equals(command.getAmount()))
+					.filter(recipeIngredients -> recipeIngredients.getUnitOfMeasure().getId()
+							.equals(command.getUnitOfMeasure().getId()))
+					.findFirst();
+		}
+
+		// to do check for fail
+		return ingredientToIngredientCommand.convert(savedIngredientOptional.get());
 
 	}
 
