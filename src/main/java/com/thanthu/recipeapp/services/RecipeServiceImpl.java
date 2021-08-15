@@ -10,6 +10,7 @@ import com.thanthu.recipeapp.commands.RecipeCommand;
 import com.thanthu.recipeapp.converters.RecipeCommandToRecipe;
 import com.thanthu.recipeapp.converters.RecipeToRecipeCommand;
 import com.thanthu.recipeapp.domain.Recipe;
+import com.thanthu.recipeapp.exceptions.NotFoundException;
 import com.thanthu.recipeapp.repositories.RecipeRepository;
 
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +41,7 @@ public class RecipeServiceImpl implements RecipeService {
 
 	@Override
 	public Recipe findById(Long id) {
-		return recipeRepository.findById(id).orElse(null);
+		return recipeRepository.findById(id).orElseThrow(() -> new NotFoundException("Recipe Not Found"));
 	}
 
 	@Override
@@ -52,7 +53,7 @@ public class RecipeServiceImpl implements RecipeService {
 		log.debug("Saved RecipeId:" + savedRecipe.getId());
 		return recipeToRecipeCommand.convert(savedRecipe);
 	}
-	
+
 	@Override
 	public RecipeCommand findCommandById(Long id) {
 		return recipeToRecipeCommand.convert(findById(id));
