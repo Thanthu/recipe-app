@@ -1,7 +1,10 @@
 package com.thanthu.recipeapp.controllers;
 
+import javax.validation.Valid;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/recipe")
 public class RecipeController {
 
+	private static final String RECIPE_RECIPEFORM_URL = "recipe/recipeform";
 	private final RecipeService recipeService;
 
 	public RecipeController(RecipeService recipeService) {
@@ -39,8 +43,14 @@ public class RecipeController {
 	}
 
 	@PostMapping("")
-	public String saveOrUpdate(@ModelAttribute RecipeCommand command) {
+	public String saveOrUpdate(@Valid @ModelAttribute("recipe") RecipeCommand command, BindingResult bindingResult) {
 		log.debug("POST /recipe");
+		if (bindingResult.hasErrors()) {
+			bindingResult.getAllErrors().forEach(objectError -> {
+				log.debug(objectError.toString());
+			});
+			return RECIPE_RECIPEFORM_URL;
+		}
 		RecipeCommand savedCommand = recipeService.saveRecipeCommand(command);
 		return "redirect:/recipe/" + savedCommand.getId() + "/show";
 	}
@@ -49,7 +59,7 @@ public class RecipeController {
 	public String updateRecipe(@PathVariable Long id, Model model) {
 		log.debug("GET /recipe/" + id + "/update");
 		model.addAttribute("recipe", recipeService.findCommandById(id));
-		return "recipe/recipeform";
+		return RECIPE_RECIPEFORM_URL;
 	}
 
 	@GetMapping("/{id}/delete")
