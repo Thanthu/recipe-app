@@ -1,0 +1,14 @@
+spring:  
+  datasource:
+    url: jdbc:postgresql://localhost:5430/recipe_prod
+    username: postgres
+    password: password
+  sql:
+    init:
+      platform: postgres
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
